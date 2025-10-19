@@ -2,11 +2,31 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
+	"os"
+	"sync"
+	"runtime"
 )
 
+var visitorCount int
+var mu sync.Mutex
+
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World from Go!")
+	mu.Lock()
+	visitorCount++
+	count := visitorCount
+	mu.Unlock()
+
+	hostname, _ := os.Hostname()
+	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+	fmt.Fprintf(w, "<h1>Hello from Go 🚀</h1>")
+	fmt.Fprintf(w, "<p>Server Hostname: %s</p>", hostname)
+	fmt.Fprintf(w, "<p>Client IP: %s</p>", clientIP)
+	fmt.Fprintf(w, "<p>Visitor number: %d</p>", count)
+	fmt.Fprintf(w, "<p>Go Version: %s</p>", runtime.Version())
+	fmt.Fprintf(w, "<p>OS/Arch: %s/%s</p>", runtime.GOOS, runtime.GOARCH)
 }
 
 func main() {
